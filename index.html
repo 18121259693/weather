@@ -5,8 +5,10 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>天气</title>
+<link rel="icon" type="image/png" href="favicon.ico">
 <link rel="stylesheet" href="css/style.css">
 <link href="http://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
+<script type="text/javascript" src="js/baidu.js"></script>
 </head>
 <body>
 <div class="background">
@@ -51,9 +53,9 @@
 		<svg id="outer"></svg>
 
 		<div class="btn-group" role="group" aria-label="..." style="margin-top: 30px">
-			<button id="day1" type="button" class="btn btn-default active">今天 06/07</button>
-			<button id="day2" type="button" class="btn btn-default">明天 06/08</button>
-			<button id="day3" type="button" class="btn btn-default">后天 06/09</button>
+			<button id="day1" type="button" class="btn btn-default active">今天</button>
+			<button id="day2" type="button" class="btn btn-default">明天</button>
+			<button id="day3" type="button" class="btn btn-default">后天</button>
 		</div>
 
 	</div>
@@ -70,6 +72,8 @@
 	var city = remote_ip_info.city;
 	//天气
 	var url = "http://wthrcdn.etouch.cn/weather_mini?city=" + city;
+	//日期
+	var date = new Date();
 	//星期
 	var week = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
 	//数据
@@ -88,11 +92,10 @@
 		return result;
 	}
 	function init(day){
-		var d = new Date();
 		//温度
 		$('.temp').html(getNum(data.data.forecast[day].high)+'<span>c</span>');
 		//日期
-		$('#date').html((d.getMonth() + 1) + '月' + (d.getDate() + day) + '日 ' + week[(d.getDay() + day) % 7]);
+		$('#date').html(dateFormat(date, day, 1));
 		//天气
 		change(data.data.forecast[day].type);
 
@@ -100,13 +103,13 @@
 	}
 	function change(type){
 		if(type){
-			if(type.indexOf('雷') > 0){
+			if(type.indexOf('雷') >= 0){
 				changeWeather(weather[3])
-			}else if(type.indexOf('雨') > 0){
+			}else if(type.indexOf('雨') >= 0){
 				changeWeather(weather[2])
-			}else if(type.indexOf('阴') > 0 || type.indexOf('云') > 0){
+			}else if(type.indexOf('阴') >= 0 || type.indexOf('云') >= 0){
 				changeWeather(weather[1])
-			}else if(type.indexOf('雪') > 0){
+			}else if(type.indexOf('雪') >= 0){
 				changeWeather(weather[0])
 			}else{
 				changeWeather(weather[4])
@@ -120,8 +123,32 @@
 	function getNum(text){
 		return text.replace(/[^0-9]/ig,""); 
 	}
+	//type = 0 06/07  ， type = 1 06月07日 星期四
+	function dateFormat(date, day, type){
+		var result = "";
+		if(day > 0)
+			date = new Date((date / 1000 + 60 * 60 * 24 * day) * 1000)
+		
+		var m = (date.getMonth() + 1) + '';
+		if(m.length == 1) m = '0' + m;
+		var d = date.getDate() + '';
+		if(d.length == 1) d = '0' + d;
+
+		var w = week[date.getDay()];
+		if(type == 0){
+			result = m + '/' + d
+		}else if(type == 1){
+			result = m + '月' + d + '日 ' + w;
+		}
+		return result;
+	}
 	$(function(){
 		$('#city').html(city);
+		$('#day1').html('今天 ' + dateFormat(date, 0, 0));
+		$('#day2').html('明天 ' + dateFormat(date, 1, 0));
+		$('#day3').html('后天 ' + dateFormat(date, 2, 0));
+
+
 		init(0);
 		$("#day1").click(function(){
 			init(0);
